@@ -1,0 +1,39 @@
+app:
+  env: production
+  name: historical-data-api
+  port: 8080
+  debug: false
+
+database:
+  host: ${DB_HOST}
+  port: 3306
+  name: historical_data
+  user: ${DB_USER}
+  password: ${DB_PASSWORD}
+  max_open_conns: 100
+  max_idle_conns: 10
+  conn_max_lifetime: 3600
+
+api:
+  rate_limit: 1000
+  request_timeout: 30
+  shutdown_timeout: 30
+
+logging:
+  level: warn
+  format: json
+
+cors:
+  allowed_origins:
+    - "https://api.example.com"
+  allowed_methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowed_headers:
+    - "Content-Type"
+    - "Authorization"
+    - "X-Request-ID"
+
