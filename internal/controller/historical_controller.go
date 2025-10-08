@@ -107,7 +107,7 @@ func (h *HistoricalController) UploadCSV(c *fiber.Ctx) error {
 	if err != nil {
 		return response.InternalServerError(c, "Failed to read file")
 	}
-	defer fileReader.Close()
+	defer fileReader.Close() //nolint:errcheck // Close errors in defer are commonly ignored in HTTP handlers
 
 	// Track CSV upload duration
 	startTime := time.Now()

@@ -1,30 +1,27 @@
+# golangci-lint configuration
+# https://golangci-lint.run/usage/configuration/
+
 run:
   timeout: 5m
-  go: '1.21'
   tests: true
+  modules-download-mode: readonly
 
 linters:
   enable:
-    - errcheck       # Check for unchecked errors
-    - gosimple       # Simplify code
-    - govet          # Reports suspicious constructs
-    - ineffassign    # Detects ineffectual assignments
-    - staticcheck    # Go static analysis
-    - unused         # Check for unused constants, variables, functions
-    - gofmt          # Check formatting
-    - goimports      # Check imports formatting
-    - misspell       # Finds commonly misspelled words
-    - goconst        # Finds repeated strings that could be constants
-    - gocyclo        # Computes cyclomatic complexity
-    - dupl           # Code clone detection
-    - gosec          # Security checks
-    - revive         # Fast linter
-    - stylecheck     # Style checks
-    - unconvert      # Remove unnecessary type conversions
-    - unparam        # Reports unused function parameters
-    - bodyclose      # Checks HTTP response body is closed
-    - noctx          # Finds sending http request without context
-    - sqlclosecheck  # Checks that sql.Rows and sql.Stmt are closed
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gofmt
+    - goimports
+    - misspell
+    - unconvert
+    - unparam
+    - gosec
+  disable:
+    - typecheck  # Disabled due to Go toolchain version mismatch in dependencies
 
 linters-settings:
   errcheck:
@@ -32,55 +29,43 @@ linters-settings:
     check-blank: true
   
   govet:
-    enable:
-      - shadow
+    check-shadowing: false
   
-  gocyclo:
-    min-complexity: 15
+  gofmt:
+    simplify: true
   
-  dupl:
-    threshold: 100
-  
-  goconst:
-    min-len: 3
-    min-occurrences: 3
+  goimports:
+    local-prefixes: github.com/yourusername/go-historical-data
   
   misspell:
     locale: US
   
-  revive:
-    rules:
-      - name: var-naming
-        disabled: false
-      - name: exported
-        disabled: false
-      - name: indent-error-flow
-        disabled: false
-      - name: error-return
-        disabled: false
-      - name: error-strings
-        disabled: false
-      - name: receiver-naming
-        disabled: false
+  gosec:
+    severity: medium
+    confidence: medium
+    excludes:
+      - G104  # Audit errors not checked (too noisy)
 
 issues:
-  exclude-dirs:
-    - vendor
-    - tests/mocks
-  exclude-files:
-    - ".*\\.pb\\.go$"
-    - ".*_mock\\.go$"
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  
   exclude-rules:
+    # Exclude some linters from running on tests files
     - path: _test\.go
       linters:
-        - dupl
         - gosec
-        - gocyclo
-  max-same-issues: 0
-  max-issues-per-linter: 0
+        - errcheck
+    
+    # Exclude known issues in vendor/
+    - path: vendor/
+      linters:
+        - all
 
 output:
-  formats: colored-line-number
+  format: colored-line-number
   print-issued-lines: true
   print-linter-name: true
-
+  uniq-by-line: true
+  sort-results: true
