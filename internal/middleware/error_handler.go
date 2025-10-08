@@ -62,7 +62,11 @@ func Recover() fiber.Handler {
 					Str("path", c.Path()).
 					Msg("Panic recovered")
 
-				_ = response.InternalServerError(c, "Internal Server Error")
+				// Send error response, ignore any error from the response itself
+				// as we're already in a panic recovery situation
+				if err := response.InternalServerError(c, "Internal Server Error"); err != nil {
+					log.Error().Err(err).Msg("Failed to send panic response")
+				}
 			}
 		}()
 

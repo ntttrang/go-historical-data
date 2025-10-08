@@ -22,6 +22,9 @@ api:
 logging:
   level: warn
   format: json
+  logstash_host: ${LOGSTASH_HOST:-logstash}
+  logstash_port: 5044
+  enable_logstash: true
 
 cors:
   allowed_origins:
@@ -36,4 +39,11 @@ cors:
     - "Content-Type"
     - "Authorization"
     - "X-Request-ID"
+
+tracing:
+  enabled: true
+  service_name: historical-data-api
+  service_version: 1.0.0
+  jaeger_endpoint: ${JAEGER_ENDPOINT:-jaeger:4318}
+  sampling_rate: 0.1
 

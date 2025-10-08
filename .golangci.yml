@@ -1,0 +1,86 @@
+run:
+  timeout: 5m
+  go: '1.21'
+  tests: true
+
+linters:
+  enable:
+    - errcheck       # Check for unchecked errors
+    - gosimple       # Simplify code
+    - govet          # Reports suspicious constructs
+    - ineffassign    # Detects ineffectual assignments
+    - staticcheck    # Go static analysis
+    - unused         # Check for unused constants, variables, functions
+    - gofmt          # Check formatting
+    - goimports      # Check imports formatting
+    - misspell       # Finds commonly misspelled words
+    - goconst        # Finds repeated strings that could be constants
+    - gocyclo        # Computes cyclomatic complexity
+    - dupl           # Code clone detection
+    - gosec          # Security checks
+    - revive         # Fast linter
+    - stylecheck     # Style checks
+    - unconvert      # Remove unnecessary type conversions
+    - unparam        # Reports unused function parameters
+    - bodyclose      # Checks HTTP response body is closed
+    - noctx          # Finds sending http request without context
+    - sqlclosecheck  # Checks that sql.Rows and sql.Stmt are closed
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  
+  govet:
+    enable:
+      - shadow
+  
+  gocyclo:
+    min-complexity: 15
+  
+  dupl:
+    threshold: 100
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  
+  misspell:
+    locale: US
+  
+  revive:
+    rules:
+      - name: var-naming
+        disabled: false
+      - name: exported
+        disabled: false
+      - name: indent-error-flow
+        disabled: false
+      - name: error-return
+        disabled: false
+      - name: error-strings
+        disabled: false
+      - name: receiver-naming
+        disabled: false
+
+issues:
+  exclude-dirs:
+    - vendor
+    - tests/mocks
+  exclude-files:
+    - ".*\\.pb\\.go$"
+    - ".*_mock\\.go$"
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - dupl
+        - gosec
+        - gocyclo
+  max-same-issues: 0
+  max-issues-per-linter: 0
+
+output:
+  formats: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+

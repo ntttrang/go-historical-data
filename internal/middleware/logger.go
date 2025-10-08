@@ -19,6 +19,13 @@ func Logger(log *logger.Logger) fiber.Handler {
 		// Create logger with request context
 		reqLogger := log.WithRequestID(requestID)
 
+		// Add trace context if available
+		if traceID, ok := c.Locals("trace_id").(string); ok {
+			if spanID, ok := c.Locals("span_id").(string); ok {
+				reqLogger = reqLogger.WithTrace(traceID, spanID)
+			}
+		}
+
 		// Store logger in context
 		c.Locals("logger", reqLogger)
 

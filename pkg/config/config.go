@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -14,6 +15,7 @@ type Config struct {
 	API      APIConfig      `mapstructure:"api"`
 	Logging  LoggingConfig  `mapstructure:"logging"`
 	CORS     CORSConfig     `mapstructure:"cors"`
+	Tracing  TracingConfig  `mapstructure:"tracing"`
 }
 
 type AppConfig struct {
@@ -41,14 +43,25 @@ type APIConfig struct {
 }
 
 type LoggingConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
+	Level          string `mapstructure:"level"`
+	Format         string `mapstructure:"format"`
+	LogstashHost   string `mapstructure:"logstash_host"`
+	LogstashPort   int    `mapstructure:"logstash_port"`
+	EnableLogstash bool   `mapstructure:"enable_logstash"`
 }
 
 type CORSConfig struct {
 	AllowedOrigins []string `mapstructure:"allowed_origins"`
 	AllowedMethods []string `mapstructure:"allowed_methods"`
 	AllowedHeaders []string `mapstructure:"allowed_headers"`
+}
+
+type TracingConfig struct {
+	Enabled        bool    `mapstructure:"enabled"`
+	ServiceName    string  `mapstructure:"service_name"`
+	ServiceVersion string  `mapstructure:"service_version"`
+	JaegerEndpoint string  `mapstructure:"jaeger_endpoint"`
+	SamplingRate   float64 `mapstructure:"sampling_rate"`
 }
 
 // Load loads configuration from file and environment variables
@@ -86,13 +99,17 @@ func Load() (*Config, error) {
 
 func overrideFromEnv(cfg *Config) {
 	if val := os.Getenv("APP_PORT"); val != "" {
-		fmt.Sscanf(val, "%d", &cfg.App.Port)
+		if port, err := strconv.Atoi(val); err == nil {
+			cfg.App.Port = port
+		}
 	}
 	if val := os.Getenv("DB_HOST"); val != "" {
 		cfg.Database.Host = val
 	}
 	if val := os.Getenv("DB_PORT"); val != "" {
-		fmt.Sscanf(val, "%d", &cfg.Database.Port)
+		if port, err := strconv.Atoi(val); err == nil {
+			cfg.Database.Port = port
+		}
 	}
 	if val := os.Getenv("DB_NAME"); val != "" {
 		cfg.Database.Name = val
@@ -105,6 +122,23 @@ func overrideFromEnv(cfg *Config) {
 	}
 	if val := os.Getenv("LOG_LEVEL"); val != "" {
 		cfg.Logging.Level = val
+	}
+	if val := os.Getenv("LOGSTASH_HOST"); val != "" {
+		cfg.Logging.LogstashHost = val
+	}
+	if val := os.Getenv("LOGSTASH_PORT"); val != "" {
+		if port, err := strconv.Atoi(val); err == nil {
+			cfg.Logging.LogstashPort = port
+		}
+	}
+	if val := os.Getenv("ENABLE_LOGSTASH"); val != "" {
+		cfg.Logging.EnableLogstash = val == "true"
+	}
+	if val := os.Getenv("TRACING_ENABLED"); val != "" {
+		cfg.Tracing.Enabled = val == "true"
+	}
+	if val := os.Getenv("JAEGER_ENDPOINT"); val != "" {
+		cfg.Tracing.JaegerEndpoint = val
 	}
 }
 
