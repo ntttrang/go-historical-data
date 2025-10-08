@@ -2,8 +2,10 @@ package controller
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/go-historical-data/internal/dto/request"
+	"github.com/go-historical-data/internal/middleware"
 	"github.com/go-historical-data/internal/service"
 	"github.com/go-historical-data/pkg/response"
 	"github.com/go-historical-data/pkg/validator"
@@ -107,11 +109,30 @@ func (h *HistoricalController) UploadCSV(c *fiber.Ctx) error {
 	}
 	defer fileReader.Close()
 
+	// Track CSV upload duration
+	startTime := time.Now()
+
 	// Process CSV file
 	result, err := h.service.UploadCSV(c.UserContext(), fileReader, file.Size)
+
+	// Record metrics
+	duration := time.Since(startTime)
 	if err != nil {
+		middleware.RecordCSVMetrics(0, 0, duration, "error")
 		return response.InternalServerError(c, err.Error())
 	}
+
+	// Determine upload status based on errors
+	uploadStatus := "success"
+	if len(result.Errors) > 0 {
+		if result.SuccessCount == 0 {
+			uploadStatus = "error"
+		} else {
+			uploadStatus = "partial"
+		}
+	}
+
+	middleware.RecordCSVMetrics(result.SuccessCount, result.FailedCount, duration, uploadStatus)
 
 	return response.Success(c, result)
 }

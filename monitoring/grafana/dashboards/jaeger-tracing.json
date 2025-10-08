@@ -25,7 +25,7 @@
     {
       "datasource": {
         "type": "jaeger",
-        "uid": "jaeger_ds"
+        "uid": "jaeger"
       },
       "fieldConfig": {
         "defaults": {
@@ -60,7 +60,7 @@
         {
           "datasource": {
             "type": "jaeger",
-            "uid": "jaeger_ds"
+            "uid": "jaeger"
           },
           "queryType": "search",
           "service": "historical-data-api",
@@ -73,7 +73,7 @@
     {
       "datasource": {
         "type": "jaeger",
-        "uid": "jaeger_ds"
+        "uid": "jaeger"
       },
       "fieldConfig": {
         "defaults": {
@@ -126,7 +126,7 @@
         {
           "datasource": {
             "type": "jaeger",
-            "uid": "jaeger_ds"
+            "uid": "jaeger"
           },
           "queryType": "search",
           "service": "historical-data-api",
@@ -139,7 +139,7 @@
     {
       "datasource": {
         "type": "jaeger",
-        "uid": "jaeger_ds"
+        "uid": "jaeger"
       },
       "description": "Service dependency graph showing relationships between services",
       "fieldConfig": {
@@ -173,7 +173,7 @@
         {
           "datasource": {
             "type": "jaeger",
-            "uid": "jaeger_ds"
+            "uid": "jaeger"
           },
           "queryType": "search",
           "service": "historical-data-api",
@@ -186,7 +186,7 @@
     {
       "datasource": {
         "type": "jaeger",
-        "uid": "jaeger_ds"
+        "uid": "jaeger"
       },
       "description": "Detailed trace view for request analysis",
       "fieldConfig": {
@@ -219,7 +219,7 @@
         {
           "datasource": {
             "type": "jaeger",
-            "uid": "jaeger_ds"
+            "uid": "jaeger"
           },
           "queryType": "search",
           "service": "historical-data-api",
@@ -253,7 +253,7 @@
         },
         "datasource": {
           "type": "jaeger",
-          "uid": "jaeger_ds"
+          "uid": "jaeger"
         },
         "definition": "",
         "hide": 0,
@@ -277,7 +277,7 @@
         },
         "datasource": {
           "type": "jaeger",
-          "uid": "jaeger_ds"
+          "uid": "jaeger"
         },
         "definition": "",
         "hide": 0,

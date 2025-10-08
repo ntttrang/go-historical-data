@@ -11,6 +11,9 @@ A production-ready RESTful API service built with Go for managing historical fin
 - **Structured Logging**: Zerolog for efficient logging
 - **Validation**: Request validation with go-playground/validator
 - **Rate Limiting**: IP-based rate limiting
+- **Distributed Tracing**: Jaeger with OpenTelemetry
+- **Metrics Collection**: Prometheus for HTTP, database, and CSV metrics
+- **Visualization**: Grafana dashboards for metrics and traces
 - **Containerization**: Docker & Docker Compose
 - **CI/CD**: Jenkins
 - **Production Ready**: Health checks, graceful shutdown, error handling
@@ -62,7 +65,8 @@ Server will be available:
 
 | Component | URL | Credentials | Purpose |
 |-----------|-----|-------------|---------|
-| **API** | http://localhost:8080 | None | APUI Endpoint, Generate traces |
+| **API** | http://localhost:8080 | None | API Endpoint, Generate traces |
+| **Prometheus** | http://localhost:9090 | None | Metrics collection & querying |
 | **Grafana** | http://localhost:3000 | admin / admin | Dashboard visualization |
 | **Jaeger UI** | http://localhost:16686 | None | Direct trace analysis |
 
@@ -71,6 +75,9 @@ Server will be available:
 
 ### Health Check
 - `GET /health` - Application health status
+
+### Metrics
+- `GET /metrics` - Prometheus metrics endpoint
 
 ### Historical Data
 - `POST /api/v1/data` - Upload historical data (JSON bulk)

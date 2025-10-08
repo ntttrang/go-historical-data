@@ -19,7 +19,9 @@ import (
 	"github.com/go-historical-data/pkg/tracing"
 	"github.com/go-historical-data/pkg/validator"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -114,8 +116,14 @@ func main() {
 		app.Use(middleware.RateLimiter(cfg.API.RateLimit))
 	}
 
-	// Health check routes
+	// Health check routes (before metrics middleware to avoid tracking internal endpoints)
 	app.Get("/health", healthController.Check)
+
+	// Prometheus metrics endpoint (must be before metrics middleware)
+	app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
+
+	// Prometheus metrics middleware (apply after internal endpoints)
+	app.Use(middleware.PrometheusMiddleware())
 
 	// API routes
 	apiV1 := app.Group("/api/v1")

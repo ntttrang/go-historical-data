@@ -5,19 +5,13 @@ datasources:
     type: jaeger
     access: proxy
     url: http://jaeger:16686
-    uid: jaeger_ds
+    uid: jaeger
     isDefault: false
     editable: true
     jsonData:
-      tracesToLogsV2:
-        # This enables correlation between traces and logs
-        datasourceUid: 'loki_ds'
-        tags: [{ key: 'request_id', value: 'request_id' }]
-        filterByTraceID: true
-        filterBySpanID: false
       tracesToMetrics:
         # This enables correlation between traces and metrics
-        datasourceUid: 'prometheus_ds'
+        datasourceUid: 'prometheus'
         tags: [{ key: 'service', value: 'service_name' }]
       nodeGraph:
         enabled: true

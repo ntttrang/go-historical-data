@@ -51,7 +51,7 @@
     {
       "datasource": {
         "type": "jaeger",
-        "uid": "jaeger_ds"
+        "uid": "jaeger"
       },
       "description": "Total number of traces captured",
       "fieldConfig": {
@@ -99,7 +99,7 @@
         {
           "datasource": {
             "type": "jaeger",
-            "uid": "jaeger_ds"
+            "uid": "jaeger"
           },
           "queryType": "search",
           "service": "historical-data-api",
@@ -113,7 +113,7 @@
     {
       "datasource": {
         "type": "jaeger",
-        "uid": "jaeger_ds"
+        "uid": "jaeger"
       },
       "description": "Average trace duration",
       "fieldConfig": {
@@ -169,7 +169,7 @@
         {
           "datasource": {
             "type": "jaeger",
-            "uid": "jaeger_ds"
+            "uid": "jaeger"
           },
           "queryType": "search",
           "service": "historical-data-api",
@@ -182,7 +182,7 @@
     {
       "datasource": {
         "type": "jaeger",
-        "uid": "jaeger_ds"
+        "uid": "jaeger"
       },
       "description": "Traces with errors",
       "fieldConfig": {
@@ -238,7 +238,7 @@
         {
           "datasource": {
             "type": "jaeger",
-            "uid": "jaeger_ds"
+            "uid": "jaeger"
           },
           "queryType": "search",
           "service": "historical-data-api",
@@ -252,7 +252,7 @@
     {
       "datasource": {
         "type": "jaeger",
-        "uid": "jaeger_ds"
+        "uid": "jaeger"
       },
       "description": "P95 latency",
       "fieldConfig": {
@@ -308,7 +308,7 @@
         {
           "datasource": {
             "type": "jaeger",
-            "uid": "jaeger_ds"
+            "uid": "jaeger"
           },
           "queryType": "search",
           "service": "historical-data-api",
@@ -334,7 +334,7 @@
     {
       "datasource": {
         "type": "jaeger",
-        "uid": "jaeger_ds"
+        "uid": "jaeger"
       },
       "description": "Recent traces from the API service",
       "fieldConfig": {
@@ -370,7 +370,7 @@
         {
           "datasource": {
             "type": "jaeger",
-            "uid": "jaeger_ds"
+            "uid": "jaeger"
           },
           "queryType": "search",
           "service": "$service",
@@ -399,7 +399,7 @@
     {
       "datasource": {
         "type": "jaeger",
-        "uid": "jaeger_ds"
+        "uid": "jaeger"
       },
       "description": "Visualize service call relationships and dependencies",
       "fieldConfig": {
@@ -435,7 +435,7 @@
         {
           "datasource": {
             "type": "jaeger",
-            "uid": "jaeger_ds"
+            "uid": "jaeger"
           },
           "queryType": "search",
           "service": "$service",
@@ -461,7 +461,7 @@
     {
       "datasource": {
         "type": "jaeger",
-        "uid": "jaeger_ds"
+        "uid": "jaeger"
       },
       "description": "Detailed span timeline for selected traces",
       "fieldConfig": {
@@ -494,7 +494,7 @@
         {
           "datasource": {
             "type": "jaeger",
-            "uid": "jaeger_ds"
+            "uid": "jaeger"
           },
           "queryType": "search",
           "service": "$service",
