@@ -43,8 +43,11 @@ type APIConfig struct {
 }
 
 type LoggingConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
+	Level          string `mapstructure:"level"`
+	Format         string `mapstructure:"format"`
+	LogstashHost   string `mapstructure:"logstash_host"`
+	LogstashPort   int    `mapstructure:"logstash_port"`
+	EnableLogstash bool   `mapstructure:"enable_logstash"`
 }
 
 type CORSConfig struct {
@@ -119,6 +122,17 @@ func overrideFromEnv(cfg *Config) {
 	}
 	if val := os.Getenv("LOG_LEVEL"); val != "" {
 		cfg.Logging.Level = val
+	}
+	if val := os.Getenv("LOGSTASH_HOST"); val != "" {
+		cfg.Logging.LogstashHost = val
+	}
+	if val := os.Getenv("LOGSTASH_PORT"); val != "" {
+		if port, err := strconv.Atoi(val); err == nil {
+			cfg.Logging.LogstashPort = port
+		}
+	}
+	if val := os.Getenv("ENABLE_LOGSTASH"); val != "" {
+		cfg.Logging.EnableLogstash = val == "true"
 	}
 	if val := os.Getenv("TRACING_ENABLED"); val != "" {
 		cfg.Tracing.Enabled = val == "true"

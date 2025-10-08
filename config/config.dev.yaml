@@ -22,6 +22,9 @@ api:
 logging:
   level: debug
   format: json
+  logstash_host: logstash
+  logstash_port: 5044
+  enable_logstash: true
 
 cors:
   allowed_origins:

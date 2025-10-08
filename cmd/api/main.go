@@ -34,8 +34,11 @@ func main() {
 
 	// Initialize logger
 	log := applogger.New(applogger.Config{
-		Level:  cfg.Logging.Level,
-		Format: cfg.Logging.Format,
+		Level:          cfg.Logging.Level,
+		Format:         cfg.Logging.Format,
+		LogstashHost:   cfg.Logging.LogstashHost,
+		LogstashPort:   cfg.Logging.LogstashPort,
+		EnableLogstash: cfg.Logging.EnableLogstash,
 	})
 
 	log.Info().Msg("Starting Historical Data API...")

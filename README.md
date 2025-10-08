@@ -26,24 +26,41 @@ A production-ready RESTful API service built with Go for managing historical fin
 
 ```
 go-historical-data/
-├── cmd/api/                    # Application entry point
-├── internal/                   # Private application code
-│   ├── controller/             # HTTP handlers
-│   ├── service/                # Business logic
-│   ├── repository/             # Data access layer
-│   ├── model/                  # Domain models
-│   ├── dto/                    # Data Transfer Objects
-│   └── middleware/             # HTTP middleware
-├── pkg/                        # Public reusable packages
-│   ├── config/                 # Configuration management
-│   ├── database/               # Database connections
-│   ├── logger/                 # Logging utilities
-│   ├── validator/              # Validation utilities
-│   ├── csvparser/              # CSV parsing utilities
-│   └── response/               # Response helpers
-├── database/migrations/        # SQL migrations
-├── config/                     # Configuration files
-└── docker-compose.yml          # Docker services configuration
+├── cmd/ -- Application entry point
+│   └── api/
+│       └── main.go
+├── config/ -- Configuration files
+│   ├── config.dev.yaml
+│   ├── config.staging.yaml
+│   └── config.prod.yaml
+├── database/ -- Database files
+│   └── migrations/
+├── internal/ -- Private application code
+│   ├── controller/
+│   ├── dto/
+│   │   ├── request/
+│   │   └── response/
+│   ├── middleware/
+│   ├── model/
+│   ├── repository/
+│   └── service/
+├── pkg/
+│   ├── config/
+│   ├── csvparser/
+│   ├── database/
+│   ├── logger/
+│   ├── response/
+│   ├── tracing/
+│   └── validator/
+├── monitoring/ -- Monitoring files
+│   ├── elasticsearch/
+│   ├── grafana/
+│   ├── kibana/
+│   └── logstash/
+├── docker-compose.yml
+├── Dockerfile
+├── go.mod
+└── README.md
 ```
 
 ## 🚦 Quick Start
@@ -65,11 +82,13 @@ Server will be available:
 
 | Component | URL | Credentials | Purpose |
 |-----------|-----|-------------|---------|
-| **API** | http://localhost:8080 | None | API Endpoint, Generate traces |
+| **API** | http://localhost:8080 | None | API Endpoint |    
 | **Prometheus** | http://localhost:9090 | None | Metrics collection & querying |
 | **Grafana** | http://localhost:3000 | admin / admin | Dashboard visualization |
 | **Jaeger UI** | http://localhost:16686 | None | Direct trace analysis |
-
+| **Logstash** | http://localhost:9600 | None | Log parsing and enrichment |
+| **Elasticsearch** | http://localhost:9200 | None | Log storage |
+| **Kibana (Logs)** | http://localhost:5601 | None | Log visualization |
 
 ## 📚 API Endpoints
 
