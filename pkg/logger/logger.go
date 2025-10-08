@@ -76,6 +76,15 @@ func (l *Logger) WithRequestID(requestID string) *Logger {
 	return &Logger{Logger: &logger}
 }
 
+// WithTrace adds trace ID and span ID to logger context
+func (l *Logger) WithTrace(traceID, spanID string) *Logger {
+	logger := l.Logger.With().
+		Str("trace_id", traceID).
+		Str("span_id", spanID).
+		Logger()
+	return &Logger{Logger: &logger}
+}
+
 // GetGlobalLogger returns the global logger
 func GetGlobalLogger() *Logger {
 	return &Logger{Logger: &log.Logger}

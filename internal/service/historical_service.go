@@ -11,6 +11,10 @@ import (
 	"github.com/go-historical-data/internal/model"
 	"github.com/go-historical-data/internal/repository"
 	"github.com/go-historical-data/pkg/csvparser"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // HistoricalService defines the interface for historical data business logic
@@ -34,11 +38,24 @@ func NewHistoricalService(repo repository.HistoricalRepository) HistoricalServic
 
 // GetHistoricalData retrieves historical data
 func (s *historicalService) GetHistoricalData(ctx context.Context, req *request.GetDataRequest) (*response.PaginatedHistoricalDataResponse, error) {
+	tracer := otel.Tracer("historical-service")
+	ctx, span := tracer.Start(ctx, "HistoricalService.GetHistoricalData")
+	defer span.End()
+
 	// Set defaults
 	req.SetDefaults()
 
+	// Add request parameters to span
+	span.SetAttributes(
+		attribute.String("symbol", req.Symbol),
+		attribute.Int("page", req.Page),
+		attribute.Int("limit", req.Limit),
+	)
+
 	// Validate date range
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "validation failed")
 		return nil, err
 	}
 
@@ -57,13 +74,20 @@ func (s *historicalService) GetHistoricalData(ctx context.Context, req *request.
 	// Fetch from database
 	data, total, err := s.repo.FindAll(ctx, filters, req.Limit, req.GetOffset())
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "database query failed")
 		return nil, fmt.Errorf("failed to get historical data: %w", err)
 	}
 
+	span.SetAttributes(
+		attribute.Int("total_records", int(total)),
+		attribute.Int("returned_records", len(data)),
+	)
+
 	// Convert to response
 	responseData := make([]response.HistoricalDataResponse, len(data))
-	for i, item := range data {
-		responseData[i] = s.toHistoricalDataResponse(&item)
+	for i := range data {
+		responseData[i] = s.toHistoricalDataResponse(&data[i])
 	}
 
 	// Calculate pagination metadata
@@ -87,14 +111,25 @@ func (s *historicalService) GetHistoricalData(ctx context.Context, req *request.
 
 // GetHistoricalDataByID retrieves a single historical data record by ID
 func (s *historicalService) GetHistoricalDataByID(ctx context.Context, id uint64) (*response.HistoricalDataResponse, error) {
+	tracer := otel.Tracer("historical-service")
+	ctx, span := tracer.Start(ctx, "HistoricalService.GetHistoricalDataByID")
+	defer span.End()
+
+	span.SetAttributes(attribute.String("id", fmt.Sprintf("%d", id)))
+
 	// Fetch from database
 	data, err := s.repo.FindByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "database query failed")
 		return nil, fmt.Errorf("failed to get historical data by id: %w", err)
 	}
 	if data == nil {
+		span.SetAttributes(attribute.Bool("found", false))
 		return nil, nil
 	}
+
+	span.SetAttributes(attribute.Bool("found", true))
 
 	// Convert to response
 	result := s.toHistoricalDataResponse(data)
@@ -104,12 +139,22 @@ func (s *historicalService) GetHistoricalDataByID(ctx context.Context, id uint64
 
 // UploadCSV processes and stores CSV file data with batch processing
 func (s *historicalService) UploadCSV(ctx context.Context, reader io.Reader, fileSize int64) (*response.CSVUploadResponse, error) {
+	tracer := otel.Tracer("historical-service")
+	ctx, span := tracer.Start(ctx, "HistoricalService.UploadCSV")
+	defer span.End()
+
+	span.SetAttributes(
+		attribute.Int64("file_size_bytes", fileSize),
+	)
+
 	const batchSize = 1000
 
 	parser := csvparser.NewParser(reader)
 
 	// Parse and validate header
 	if err := parser.ParseHeader(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "invalid CSV header")
 		return nil, fmt.Errorf("invalid CSV header: %w", err)
 	}
 
@@ -184,6 +229,22 @@ func (s *historicalService) UploadCSV(ctx context.Context, reader io.Reader, fil
 	if failedCount > 0 {
 		message = fmt.Sprintf("CSV file processed with %d errors", failedCount)
 	}
+
+	// Add CSV processing metrics to span
+	span.SetAttributes(
+		attribute.Int("total_rows", totalRows),
+		attribute.Int("success_count", successCount),
+		attribute.Int("failed_count", failedCount),
+		attribute.Int("error_count", len(errors)),
+	)
+
+	if failedCount > 0 {
+		span.AddEvent("CSV processing completed with errors", trace.WithAttributes(
+			attribute.Int("error_count", failedCount),
+		))
+	}
+
+	span.SetStatus(codes.Ok, message)
 
 	return &response.CSVUploadResponse{
 		TotalRows:      totalRows,

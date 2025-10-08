@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -14,6 +15,7 @@ type Config struct {
 	API      APIConfig      `mapstructure:"api"`
 	Logging  LoggingConfig  `mapstructure:"logging"`
 	CORS     CORSConfig     `mapstructure:"cors"`
+	Tracing  TracingConfig  `mapstructure:"tracing"`
 }
 
 type AppConfig struct {
@@ -51,6 +53,14 @@ type CORSConfig struct {
 	AllowedHeaders []string `mapstructure:"allowed_headers"`
 }
 
+type TracingConfig struct {
+	Enabled        bool    `mapstructure:"enabled"`
+	ServiceName    string  `mapstructure:"service_name"`
+	ServiceVersion string  `mapstructure:"service_version"`
+	JaegerEndpoint string  `mapstructure:"jaeger_endpoint"`
+	SamplingRate   float64 `mapstructure:"sampling_rate"`
+}
+
 // Load loads configuration from file and environment variables
 func Load() (*Config, error) {
 	env := getEnv("APP_ENV", "dev")
@@ -86,13 +96,17 @@ func Load() (*Config, error) {
 
 func overrideFromEnv(cfg *Config) {
 	if val := os.Getenv("APP_PORT"); val != "" {
-		fmt.Sscanf(val, "%d", &cfg.App.Port)
+		if port, err := strconv.Atoi(val); err == nil {
+			cfg.App.Port = port
+		}
 	}
 	if val := os.Getenv("DB_HOST"); val != "" {
 		cfg.Database.Host = val
 	}
 	if val := os.Getenv("DB_PORT"); val != "" {
-		fmt.Sscanf(val, "%d", &cfg.Database.Port)
+		if port, err := strconv.Atoi(val); err == nil {
+			cfg.Database.Port = port
+		}
 	}
 	if val := os.Getenv("DB_NAME"); val != "" {
 		cfg.Database.Name = val
@@ -105,6 +119,12 @@ func overrideFromEnv(cfg *Config) {
 	}
 	if val := os.Getenv("LOG_LEVEL"); val != "" {
 		cfg.Logging.Level = val
+	}
+	if val := os.Getenv("TRACING_ENABLED"); val != "" {
+		cfg.Tracing.Enabled = val == "true"
+	}
+	if val := os.Getenv("JAEGER_ENDPOINT"); val != "" {
+		cfg.Tracing.JaegerEndpoint = val
 	}
 }
 

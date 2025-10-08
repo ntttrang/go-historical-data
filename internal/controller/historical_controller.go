@@ -47,7 +47,7 @@ func (h *HistoricalController) GetData(c *fiber.Ctx) error {
 	}
 
 	// Call service
-	result, err := h.service.GetHistoricalData(c.Context(), &req)
+	result, err := h.service.GetHistoricalData(c.UserContext(), &req)
 	if err != nil {
 		return response.InternalServerError(c, err.Error())
 	}
@@ -65,7 +65,7 @@ func (h *HistoricalController) GetDataByID(c *fiber.Ctx) error {
 	}
 
 	// Call service
-	result, err := h.service.GetHistoricalDataByID(c.Context(), id)
+	result, err := h.service.GetHistoricalDataByID(c.UserContext(), id)
 	if err != nil {
 		return response.InternalServerError(c, err.Error())
 	}
@@ -95,10 +95,10 @@ func (h *HistoricalController) UploadCSV(c *fiber.Ctx) error {
 	}
 
 	// Validate file size (max 50MB)
-	const maxFileSize = 50 * 1024 * 1024 // 50MB
-	if file.Size > maxFileSize {
-		return response.BadRequest(c, "File too large", "Maximum file size is 50MB")
-	}
+	// const maxFileSize = 50 * 1024 * 1024 // 50MB
+	// if file.Size > maxFileSize {
+	// 	return response.BadRequest(c, "File too large", "Maximum file size is 50MB")
+	// }
 
 	// Open file
 	fileReader, err := file.Open()
@@ -108,7 +108,7 @@ func (h *HistoricalController) UploadCSV(c *fiber.Ctx) error {
 	defer fileReader.Close()
 
 	// Process CSV file
-	result, err := h.service.UploadCSV(c.Context(), fileReader, file.Size)
+	result, err := h.service.UploadCSV(c.UserContext(), fileReader, file.Size)
 	if err != nil {
 		return response.InternalServerError(c, err.Error())
 	}

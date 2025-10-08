@@ -58,7 +58,14 @@ cd go-historical-data
 docker-compose up
 ```
 
-The API will be available at `http://localhost:8080`
+Server will be available:
+
+| Component | URL | Credentials | Purpose |
+|-----------|-----|-------------|---------|
+| **API** | http://localhost:8080 | None | APUI Endpoint, Generate traces |
+| **Grafana** | http://localhost:3000 | admin / admin | Dashboard visualization |
+| **Jaeger UI** | http://localhost:16686 | None | Direct trace analysis |
+
 
 ## 📚 API Endpoints
 

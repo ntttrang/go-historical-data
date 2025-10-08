@@ -35,3 +35,10 @@ cors:
   allowed_headers:
     - "*"
 
+tracing:
+  enabled: true
+  service_name: historical-data-api
+  service_version: 1.0.0
+  jaeger_endpoint: jaeger:4318
+  sampling_rate: 1.0
+

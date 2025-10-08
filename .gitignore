@@ -1,3 +1,7 @@
+# Large test data
+large_test_data.csv
+test_data_50mb.csv
+
 # Binaries for programs and plugins
 *.exe
 *.exe~

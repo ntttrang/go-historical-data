@@ -23,6 +23,52 @@ services:
     networks:
       - historical-data-network
 
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: historical-data-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      SPAN_STORAGE_TYPE: memory
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4318:4318"    # OTLP HTTP receiver
+      - "4317:4317"    # OTLP gRPC receiver
+    networks:
+      - historical-data-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:16686/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: historical-data-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
+      GF_SERVER_ROOT_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      jaeger:
+        condition: service_healthy
+    networks:
+      - historical-data-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: .
@@ -37,10 +83,14 @@ services:
       DB_USER: root
       DB_PASSWORD: root_password
       LOG_LEVEL: debug
+      TRACING_ENABLED: "true"
+      JAEGER_ENDPOINT: jaeger:4318
     ports:
       - "8080:8080"
     depends_on:
       mysql:
+        condition: service_healthy
+      jaeger:
         condition: service_healthy
     networks:
       - historical-data-network
@@ -50,6 +100,8 @@ services:
 
 volumes:
   mysql_data:
+    driver: local
+  grafana_data:
     driver: local
 
 networks:

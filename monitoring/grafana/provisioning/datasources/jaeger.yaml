@@ -1,0 +1,27 @@
+apiVersion: 1
+
+datasources:
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    uid: jaeger_ds
+    isDefault: false
+    editable: true
+    jsonData:
+      tracesToLogsV2:
+        # This enables correlation between traces and logs
+        datasourceUid: 'loki_ds'
+        tags: [{ key: 'request_id', value: 'request_id' }]
+        filterByTraceID: true
+        filterBySpanID: false
+      tracesToMetrics:
+        # This enables correlation between traces and metrics
+        datasourceUid: 'prometheus_ds'
+        tags: [{ key: 'service', value: 'service_name' }]
+      nodeGraph:
+        enabled: true
+      spanBar:
+        type: 'Tag'
+        tag: 'http.method'
+

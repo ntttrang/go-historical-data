@@ -37,3 +37,10 @@ cors:
     - "Authorization"
     - "X-Request-ID"
 
+tracing:
+  enabled: true
+  service_name: historical-data-api
+  service_version: 1.0.0
+  jaeger_endpoint: ${JAEGER_ENDPOINT:-jaeger:4318}
+  sampling_rate: 0.1
+
