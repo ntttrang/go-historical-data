@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-playground/validator/v10"
+	goValidator "github.com/go-playground/validator/v10"
 )
 
 // Validator wraps the validator instance
 type Validator struct {
-	validate *validator.Validate
+	validate *goValidator.Validate
 }
 
 // New creates a new validator instance
 func New() *Validator {
-	v := validator.New()
+	v := goValidator.New()
 
 	// Register custom validators here if needed
 	// v.RegisterValidation("custom_tag", customValidationFunc)
@@ -34,7 +34,7 @@ func (v *Validator) Validate(data interface{}) error {
 
 // formatValidationErrors formats validation errors into a readable format
 func (v *Validator) formatValidationErrors(err error) error {
-	if validationErrors, ok := err.(validator.ValidationErrors); ok {
+	if validationErrors, ok := err.(goValidator.ValidationErrors); ok {
 		var errors []string
 		for _, e := range validationErrors {
 			errors = append(errors, fmt.Sprintf("field '%s' failed validation on '%s' tag",
