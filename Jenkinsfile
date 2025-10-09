@@ -34,7 +34,7 @@ pipeline {
         GO_VERSION = '1.21'
         
         // Docker Configuration
-        DOCKER_HUB_REPO = 'yourusername/go-historical-data'  // TODO: Update with your Docker Hub username
+        DOCKER_HUB_REPO = 'minhtrang2106/go-historical-data'  // TODO: Update with your Docker Hub username
         DOCKER_REGISTRY = 'https://index.docker.io/v1/'
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'  // Jenkins credential ID
         
@@ -61,8 +61,7 @@ pipeline {
         
         // Dynamic Variables
         BUILD_VERSION = "${env.BUILD_NUMBER}"
-        GIT_COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-        DOCKER_TAG = "${env.BRANCH_NAME}-${BUILD_VERSION}-${GIT_COMMIT_SHORT}"
+        // GIT_COMMIT_SHORT and DOCKER_TAG are computed after checkout
     }
     
     // ========================================================================
@@ -73,6 +72,16 @@ pipeline {
             name: 'DEPLOY_ENVIRONMENT',
             choices: ['none', 'staging', 'production'],
             description: 'Select deployment environment (none = CI only)'
+        )
+        string(
+            name: 'REPO_URL',
+            defaultValue: 'https://github.com/ntttrang/go-historical-data.git',
+            description: 'Git repository URL (required for non-Multibranch pipelines)'
+        )
+        string(
+            name: 'GIT_BRANCH',
+            defaultValue: 'dev',
+            description: 'Git branch to build'
         )
         booleanParam(
             name: 'SKIP_TESTS',
@@ -141,8 +150,36 @@ pipeline {
                     echo "Workspace: ${env.WORKSPACE}"
                 }
                 
-                // Checkout code from Git
-                checkout scm
+                // Validate required params for non-Multibranch usage
+                script {
+                    if (params.REPO_URL == null || params.REPO_URL.trim() == '') {
+                        error 'REPO_URL parameter is required when not using Multibranch Pipeline or Pipeline from SCM.'
+                    }
+                }
+                
+                // Checkout code from Git with credential fallback
+                script {
+                    if (fileExists('.git')) {
+                        echo 'Existing Git workspace detected. Fetching updates...'
+                        sh """
+                            git remote set-url origin ${params.REPO_URL} || true
+                            git fetch --all --tags --prune
+                            git checkout ${params.GIT_BRANCH}
+                            git reset --hard origin/${params.GIT_BRANCH}
+                        """
+                    } else {
+                        try {
+                            if (env.GIT_CREDENTIALS_ID && env.GIT_CREDENTIALS_ID.trim()) {
+                                git branch: params.GIT_BRANCH, credentialsId: env.GIT_CREDENTIALS_ID, url: params.REPO_URL
+                            } else {
+                                git branch: params.GIT_BRANCH, url: params.REPO_URL
+                            }
+                        } catch (e) {
+                            echo "Primary checkout failed (${e}). Retrying without credentials..."
+                            git branch: params.GIT_BRANCH, url: params.REPO_URL
+                        }
+                    }
+                }
                 
                 // Display Git information
                 sh '''
@@ -150,6 +187,18 @@ pipeline {
                     echo "Git Author: $(git log -1 --pretty=format:'%an <%ae>')"
                     echo "Git Message: $(git log -1 --pretty=format:'%s')"
                 '''
+                
+                // Compute dynamic variables dependent on Git after checkout
+                script {
+                    // Derive branch name if Jenkins environment doesn't provide it
+                    if (env.BRANCH_NAME == null || env.BRANCH_NAME.trim() == '') {
+                        env.BRANCH_NAME = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    }
+                    env.GIT_COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.DOCKER_TAG = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
+                    echo "Computed GIT_COMMIT_SHORT=${env.GIT_COMMIT_SHORT}"
+                    echo "Computed DOCKER_TAG=${env.DOCKER_TAG}"
+                }
             }
         }
         
@@ -166,16 +215,16 @@ pipeline {
                 
                 sh '''
                     echo "Go version:"
-                    go version
+                    go version || echo "go not found"
                     
                     echo "Go environment:"
-                    go env
+                    go env || true
                     
                     echo "Docker version:"
-                    docker --version
+                    if command -v docker >/dev/null 2>&1; then docker --version; else echo "docker not found"; fi
                     
                     echo "Docker Compose version:"
-                    docker-compose --version
+                    if command -v docker-compose >/dev/null 2>&1; then docker-compose --version; else echo "docker-compose not found"; fi
                 '''
             }
         }
@@ -232,9 +281,10 @@ pipeline {
                         curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.2
                     fi
                     
-                    # Run linter
+                    # Run linter (uses .golangci.yml config which excludes vendor and has typecheck disabled)
                     echo "Running golangci-lint..."
-                    golangci-lint run --timeout=5m --out-format=colored-line-number ./...
+                    # Only lint our own code, not vendor or module cache
+                    golangci-lint run --timeout=5m ./cmd/... ./internal/... ./pkg/...
                 '''
             }
         }
@@ -341,29 +391,36 @@ pipeline {
                     echo '============================================'
                 }
                 
-                sh '''
-                    # Start test dependencies with Docker Compose
-                    echo "Starting test environment..."
-                    docker-compose -f docker-compose.yml up -d mysql
-                    
-                    # Wait for MySQL to be ready
-                    echo "Waiting for MySQL to be ready..."
-                    timeout 60 sh -c 'until docker-compose exec -T mysql mysqladmin ping -h localhost --silent; do sleep 2; done'
-                    
-                    # Run database migrations
-                    echo "Running migrations..."
-                    ./scripts/migrate.sh up || true
-                    
-                    # Run integration tests
-                    echo "Running integration tests..."
-                    go test -v -timeout=${TEST_TIMEOUT} \
-                        -tags=integration \
-                        ./tests/integration/... || true
-                    
-                    # Cleanup
-                    echo "Cleaning up test environment..."
-                    docker-compose down -v
-                '''
+                script {
+                    def dockerAvailable = sh(script: 'command -v docker >/dev/null 2>&1 && command -v docker-compose >/dev/null 2>&1; echo $?', returnStdout: true).trim() == '0'
+                    if (!dockerAvailable) {
+                        echo 'Docker not available on this agent. Skipping integration tests.'
+                    } else {
+                        sh '''
+                            # Start test dependencies with Docker Compose
+                            echo "Starting test environment..."
+                            docker-compose -f docker-compose.yml up -d mysql
+                            
+                            # Wait for MySQL to be ready
+                            echo "Waiting for MySQL to be ready..."
+                            timeout 60 sh -c 'until docker-compose exec -T mysql mysqladmin ping -h localhost --silent; do sleep 2; done'
+                            
+                            # Run database migrations
+                            echo "Running migrations..."
+                            ./scripts/migrate.sh up || true
+                            
+                            # Run integration tests
+                            echo "Running integration tests..."
+                            go test -v -timeout=${TEST_TIMEOUT} \
+                                -tags=integration \
+                                ./tests/integration/... || true
+                            
+                            # Cleanup
+                            echo "Cleaning up test environment..."
+                            docker-compose down -v
+                        '''
+                    }
+                }
             }
         }
         
@@ -425,6 +482,12 @@ pipeline {
                     echo "Building Docker image with tag: ${dockerTag}"
                 }
                 
+                script {
+                    def dockerAvailable = sh(script: 'command -v docker >/dev/null 2>&1; echo $?', returnStdout: true).trim() == '0'
+                    if (!dockerAvailable) {
+                        error 'Docker is not available on this agent. Install Docker or use a Docker-capable node.'
+                    }
+                }
                 sh '''
                     # Build Docker image
                     docker build \
@@ -461,6 +524,12 @@ pipeline {
                 }
                 
                 // Login to Docker Hub and push image
+                script {
+                    def dockerAvailable = sh(script: 'command -v docker >/dev/null 2>&1; echo $?', returnStdout: true).trim() == '0'
+                    if (!dockerAvailable) {
+                        error 'Docker is not available on this agent. Cannot push to Docker Hub.'
+                    }
+                }
                 withCredentials([usernamePassword(
                     credentialsId: env.DOCKER_CREDENTIALS_ID,
                     usernameVariable: 'DOCKER_USERNAME',
@@ -684,34 +753,40 @@ EOF
     // ========================================================================
     post {
         always {
-            echo '============================================'
-            echo 'POST-BUILD: CLEANUP'
-            echo '============================================'
-            
-            // Cleanup workspace
-            sh '''
-                # Remove test containers
-                docker-compose down -v || true
-                
-                # Remove dangling images
-                docker image prune -f || true
-                
-                # Display disk usage
-                df -h
-            '''
-            
+            script {
+                // Ensure we have a workspace context even if early failure occurred
+                try {
+                    node {
+                        echo '============================================'
+                        echo 'POST-BUILD: CLEANUP'
+                        echo '============================================'
+                        
+                        // Cleanup workspace
+                        sh '''
+                            # Remove test containers
+                            docker-compose down -v || true
+                            
+                            # Remove dangling images
+                            docker image prune -f || true
+                            
+                            # Display disk usage
+                            df -h
+                        '''
+                        
             // Archive artifacts
             archiveArtifacts artifacts: 'bin/api,coverage.out,coverage.txt', allowEmptyArchive: true
             
-            // Clean workspace
-            cleanWs(
-                deleteDirs: true,
-                patterns: [
-                    [pattern: 'bin/', type: 'INCLUDE'],
-                    [pattern: '*.out', type: 'INCLUDE'],
-                    [pattern: '*.txt', type: 'INCLUDE']
-                ]
-            )
+            // Clean workspace (manual cleanup since cleanWs plugin may not be installed)
+            sh '''
+                echo "Cleaning workspace..."
+                rm -rf bin/ *.out *.txt *-report.json || true
+                echo "Workspace cleaned"
+            '''
+                    }
+                } catch (err) {
+                    echo "Skipping post-build workspace steps due to missing context: ${err}"
+                }
+            }
         }
         
         success {

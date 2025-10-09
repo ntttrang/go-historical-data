@@ -29,7 +29,28 @@ linters-settings:
     check-blank: true
   
   govet:
-    check-shadowing: false
+    enable:
+      - assign
+      - atomic
+      - bools
+      - buildtag
+      - cgocall
+      - composites
+      - copylocks
+      - errorsas
+      - httpresponse
+      - loopclosure
+      - lostcancel
+      - nilfunc
+      - printf
+      - shift
+      - stdmethods
+      - structtag
+      - tests
+      - unmarshal
+      - unreachable
+      - unsafeptr
+      - unusedresult
   
   gofmt:
     simplify: true
@@ -50,6 +71,13 @@ issues:
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
+  uniq-by-line: true
+  
+  # Exclude directories from linting
+  exclude-dirs:
+    - vendor
+    - bin
+  exclude-dirs-use-default: true
   
   exclude-rules:
     # Exclude some linters from running on tests files
@@ -62,10 +90,15 @@ issues:
     - path: vendor/
       linters:
         - all
+    
+    # Exclude third-party code in Go module cache
+    - path: .*/go/pkg/mod/.*
+      linters:
+        - all
 
 output:
-  format: colored-line-number
+  formats:
+    - format: colored-line-number
   print-issued-lines: true
   print-linter-name: true
-  uniq-by-line: true
   sort-results: true
