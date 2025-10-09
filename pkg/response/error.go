@@ -1,7 +1,7 @@
 package response
 
 import (
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // ErrorResponse represents a standardized error response

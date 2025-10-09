@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/go-historical-data/pkg/config"
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 

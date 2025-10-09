@@ -18,7 +18,7 @@ import (
 	applogger "github.com/go-historical-data/pkg/logger"
 	"github.com/go-historical-data/pkg/tracing"
 	"github.com/go-historical-data/pkg/validator"
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

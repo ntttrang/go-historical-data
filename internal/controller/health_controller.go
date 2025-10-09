@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/go-historical-data/pkg/response"
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // HealthController handles health check endpoints

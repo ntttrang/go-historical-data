@@ -9,7 +9,7 @@ import (
 	"github.com/go-historical-data/internal/service"
 	"github.com/go-historical-data/pkg/response"
 	"github.com/go-historical-data/pkg/validator"
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // HistoricalController handles historical data endpoints

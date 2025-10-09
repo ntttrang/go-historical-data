@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/go-historical-data/pkg/response"
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // ErrorHandler is a global error handler middleware

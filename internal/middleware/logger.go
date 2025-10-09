@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/go-historical-data/pkg/logger"
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // Logger middleware logs HTTP requests and responses
