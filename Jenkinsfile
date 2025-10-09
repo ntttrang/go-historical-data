@@ -316,7 +316,7 @@ pipeline {
                     # Verify binary
                     echo "Binary information:"
                     ls -lh bin/api
-                    file bin/api
+                    file bin/api || echo "file command not available - binary built successfully"
                     
                     # Test binary execution
                     echo "Testing binary..."
@@ -404,10 +404,12 @@ pipeline {
                             # Start test dependencies with Docker Compose
                             echo "Starting test environment..."
                             docker-compose -f docker-compose.yml up -d mysql
-                            
-                            # Wait for MySQL to be ready
+
+                            # Wait for MySQL to be ready (check both container-internal and host connectivity)
                             echo "Waiting for MySQL to be ready..."
                             timeout 60 sh -c 'until docker-compose exec -T mysql mysqladmin ping -h localhost --silent; do sleep 2; done'
+                            echo "MySQL container is ready internally. Checking host connectivity..."
+                            timeout 30 sh -c 'until mysqladmin ping -h 127.0.0.1 -P 3306 -u root -proot_password --silent; do sleep 2; done'
                             
                             # Run database migrations
                             echo "Running migrations..."
