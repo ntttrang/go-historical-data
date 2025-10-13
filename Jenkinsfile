@@ -364,7 +364,8 @@ pipeline {
                     COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
                     echo "Total Coverage: ${COVERAGE}%"
                     
-                    if (( $(echo "$COVERAGE < ${COVERAGE_THRESHOLD}" | bc -l) )); then
+                    # Compare coverage using awk (bc not available in container)
+                    if awk "BEGIN {exit !($COVERAGE < ${COVERAGE_THRESHOLD})}"; then
                         echo "WARNING: Coverage ${COVERAGE}% is below threshold ${COVERAGE_THRESHOLD}%"
                         # Uncomment to fail build on low coverage
                         # exit 1
