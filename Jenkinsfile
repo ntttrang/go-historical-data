@@ -43,8 +43,8 @@ pipeline {
         
         // Render.com Deployment Configuration
         RENDER_API_KEY_CREDENTIALS_ID = 'render-api-key'  // Jenkins credential ID for Render API key
-        RENDER_STAGING_SERVICE_ID = 'go-historical-data-staging'  // TODO: Add your Render staging service ID
-        RENDER_PRODUCTION_SERVICE_ID = 'go-historical-data-prod'  // TODO: Add your Render production service ID
+        RENDER_STAGING_SERVICE_ID = 'srv-d3mhlt1r0fns73eo0hi0'  // TODO: Add your Render staging service ID
+        RENDER_PRODUCTION_SERVICE_ID = 'srv-d3mhlt1r0fns73eo0hhg'  // TODO: Add your Render production service ID
         
         // Build Configuration
         CGO_ENABLED = '0'
@@ -627,8 +627,9 @@ pipeline {
                 
                 withCredentials([string(credentialsId: env.RENDER_API_KEY_CREDENTIALS_ID, variable: 'RENDER_API_KEY')]) {
                     sh """
-                        # Trigger Render deployment via API
+                        # Trigger Render deployment via API with Docker image
                         echo "Triggering deployment to Render staging environment..."
+                        echo "Deploying Docker image: ${DOCKER_HUB_REPO}:${FINAL_DOCKER_TAG}"
                         
                         RESPONSE=\$(curl -s -w "\\n%{http_code}" -X POST \\
                             "https://api.render.com/v1/services/${RENDER_STAGING_SERVICE_ID}/deploys" \\
@@ -702,8 +703,9 @@ pipeline {
                 
                 withCredentials([string(credentialsId: env.RENDER_API_KEY_CREDENTIALS_ID, variable: 'RENDER_API_KEY')]) {
                     sh """
-                        # Trigger Render deployment via API
+                        # Trigger Render deployment via API with Docker image
                         echo "Triggering deployment to Render production environment..."
+                        echo "Deploying Docker image: ${DOCKER_HUB_REPO}:${FINAL_DOCKER_TAG}"
                         
                         RESPONSE=\$(curl -s -w "\\n%{http_code}" -X POST \\
                             "https://api.render.com/v1/services/${RENDER_PRODUCTION_SERVICE_ID}/deploys" \\

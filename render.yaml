@@ -1,12 +1,10 @@
 services:
-  # Staging Environment
+  # Staging Environment (Image-based deployment from Docker Hub)
   - type: web
     name: go-historical-data-staging
-    runtime: docker
-    repo: https://github.com/ntttrang/go-historical-data.git
-    branch: dev
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    runtime: image
+    image:
+      url: docker.io/minhtrang2106/go-historical-data:latest
     region: oregon
     plan: free
     envVars:
@@ -29,14 +27,12 @@ services:
     healthCheckPath: /health
     autoDeploy: false
 
-  # Production Environment
+  # Production Environment (Image-based deployment from Docker Hub)
   - type: web
     name: go-historical-data-production
-    runtime: docker
-    repo: https://github.com/ntttrang/go-historical-data.git
-    branch: main
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    runtime: image
+    image:
+      url: docker.io/minhtrang2106/go-historical-data:latest
     region: oregon
     plan: free
     envVars:
