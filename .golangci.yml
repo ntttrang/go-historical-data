@@ -16,8 +16,6 @@ linters:
     - ineffassign
     - staticcheck
     - unused
-    - gofmt
-    - goimports
     - misspell
     - unconvert
     - unparam
@@ -51,12 +49,6 @@ linters-settings:
       - unreachable
       - unsafeptr
       - unusedresult
-  
-  gofmt:
-    simplify: true
-  
-  goimports:
-    local-prefixes: github.com/yourusername/go-historical-data
   
   misspell:
     locale: US
