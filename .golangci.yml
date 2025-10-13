@@ -11,11 +11,9 @@ run:
 linters:
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
-    - staticcheck
-    - unused
+    - staticcheck  # includes gosimple and unused in v2.x
     - misspell
     - unconvert
     - unparam
@@ -27,28 +25,7 @@ linters-settings:
     check-blank: true
   
   govet:
-    enable:
-      - assign
-      - atomic
-      - bools
-      - buildtag
-      - cgocall
-      - composites
-      - copylocks
-      - errorsas
-      - httpresponse
-      - loopclosure
-      - lostcancel
-      - nilfunc
-      - printf
-      - shift
-      - stdmethods
-      - structtag
-      - tests
-      - unmarshal
-      - unreachable
-      - unsafeptr
-      - unusedresult
+    enable-all: true
   
   misspell:
     locale: US
