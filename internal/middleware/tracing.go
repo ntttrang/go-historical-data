@@ -87,8 +87,9 @@ func (f *fiberHeaderCarrier) Set(key string, value string) {
 // Keys lists the keys stored in this carrier.
 func (f *fiberHeaderCarrier) Keys() []string {
 	keys := make([]string, 0)
-	f.c.Request().Header.VisitAll(func(key, _ []byte) {
+	f.c.Request().Header.All()(func(key, _ []byte) bool {
 		keys = append(keys, string(key))
+		return true
 	})
 	return keys
 }
