@@ -286,11 +286,8 @@ pipeline {
                     
                     # Run linter (uses .golangci.yml config which excludes vendor and has typecheck disabled)
                     echo "Running golangci-lint..."
-                    # Only lint our own code: restrict to project packages and skip vendor/third_party/testdata and generated files
-                    golangci-lint run --timeout=5m \
-                        --skip-dirs='vendor,go/pkg,.gomodcache,.gocache' \
-                        --skip-files='.*_gen.go,.*\\.pb\\.go,.*\\.pb\\.gw\\.go' \
-                        ./cmd/... ./internal/... ./pkg/...
+                    # Only lint our own code: restrict to project packages (exclusions are defined in .golangci.yml)
+                    golangci-lint run --timeout=5m ./cmd/... ./internal/... ./pkg/...
                 '''
             }
         }

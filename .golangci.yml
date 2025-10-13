@@ -1,6 +1,8 @@
 # golangci-lint configuration
 # https://golangci-lint.run/usage/configuration/
 
+version: 2
+
 run:
   timeout: 5m
   tests: true
@@ -77,6 +79,8 @@ issues:
   exclude-dirs:
     - vendor
     - bin
+    - .gomodcache
+    - .gocache
   exclude-dirs-use-default: true
   
   exclude-rules:
@@ -85,6 +89,17 @@ issues:
       linters:
         - gosec
         - errcheck
+    
+    # Exclude generated files
+    - path: .*_gen\.go
+      linters:
+        - all
+    - path: .*\.pb\.go
+      linters:
+        - all
+    - path: .*\.pb\.gw\.go
+      linters:
+        - all
     
     # Exclude known issues in vendor/
     - path: vendor/
