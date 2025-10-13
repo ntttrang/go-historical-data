@@ -1,0 +1,60 @@
+services:
+  # Staging Environment
+  - type: web
+    name: go-historical-data-staging
+    runtime: docker
+    repo: https://github.com/ntttrang/go-historical-data.git
+    branch: dev
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    region: oregon
+    plan: free
+    envVars:
+      - key: APP_ENV
+        value: staging
+      - key: PORT
+        value: 8080
+      - key: GIN_MODE
+        value: release
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: 3306
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+    healthCheckPath: /health
+    autoDeploy: false
+
+  # Production Environment
+  - type: web
+    name: go-historical-data-production
+    runtime: docker
+    repo: https://github.com/ntttrang/go-historical-data.git
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    region: oregon
+    plan: free
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PORT
+        value: 8080
+      - key: GIN_MODE
+        value: release
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: 3306
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+    healthCheckPath: /health
+    autoDeploy: false
