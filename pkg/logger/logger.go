@@ -84,7 +84,7 @@ func parseLogLevel(level string) zerolog.Level {
 
 // WithContext returns a new logger with context fields
 func (l *Logger) WithContext(fields map[string]interface{}) *Logger {
-	ctx := l.Logger.With()
+	ctx := l.With()
 	for k, v := range fields {
 		ctx = ctx.Interface(k, v)
 	}

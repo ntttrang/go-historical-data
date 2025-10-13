@@ -62,7 +62,7 @@ func (w *LogstashWriter) Write(p []byte) (n int, err error) {
 		}
 
 		// Connection failed, close it
-		w.conn.Close() //nolint:errcheck // Close errors in error cleanup paths are commonly ignored
+		_ = w.conn.Close() // Explicitly ignore close error in cleanup path
 		w.conn = nil
 	}
 
