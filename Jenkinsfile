@@ -31,7 +31,7 @@ pipeline {
     environment {
         // Application Configuration
         APP_NAME = 'go-historical-data'
-        GO_VERSION = '1.23'
+        GO_VERSION = '1.24'
         
         // Docker Configuration
         DOCKER_HUB_REPO = 'minhtrang2106/go-historical-data'  // TODO: Update with your Docker Hub username
@@ -280,20 +280,16 @@ pipeline {
                 }
                 
                 sh '''
-                    # Install golangci-lint if not available
-                    if ! command -v golangci-lint &> /dev/null; then
-                        echo "Installing golangci-lint..."
-                        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.2
-                    fi
+                    # Install golangci-lint (always reinstall to get compatible version)
+                    echo "Installing golangci-lint (latest version)..."
+                    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest
                     
                     # Run linter (uses .golangci.yml config which excludes vendor and has typecheck disabled)
                     echo "Running golangci-lint..."
                     # Only lint our own code: restrict to project packages and skip vendor/third_party/testdata and generated files
                     golangci-lint run --timeout=5m \
-                        --skip-dirs-use-default \
-                        --skip-dirs='vendor|go/pkg' \
-                        --skip-dirs='/.gomodcache|/.gocache' \
-                        --skip-files='.*_gen.go|.*\\.pb\\.go|.*\\.pb\\.gw\\.go' \
+                        --skip-dirs='vendor,go/pkg,.gomodcache,.gocache' \
+                        --skip-files='.*_gen.go,.*\\.pb\\.go,.*\\.pb\\.gw\\.go' \
                         ./cmd/... ./internal/... ./pkg/...
                 '''
             }
