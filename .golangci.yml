@@ -22,8 +22,6 @@ linters:
     - unconvert
     - unparam
     - gosec
-  disable:
-    - typecheck  # Disabled due to Go toolchain version mismatch in dependencies
 
 linters-settings:
   errcheck:
