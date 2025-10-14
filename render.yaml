@@ -15,15 +15,15 @@ services:
       - key: GIN_MODE
         value: release
       - key: DB_HOST
-        sync: false
+        value: bore.pub
       - key: DB_PORT
-        value: 3306
+        value: 65138
       - key: DB_USER
-        sync: false
+        value: root
       - key: DB_PASSWORD
-        sync: false
+        value: root_password
       - key: DB_NAME
-        sync: false
+        value: historical_data
     healthCheckPath: /health
     autoDeploy: false
 
@@ -43,14 +43,14 @@ services:
       - key: GIN_MODE
         value: release
       - key: DB_HOST
-        sync: false
+        value: bore.pub
       - key: DB_PORT
-        value: 3306
+        value: 65138
       - key: DB_USER
-        sync: false
+        value: root
       - key: DB_PASSWORD
-        sync: false
+        value: root_password
       - key: DB_NAME
-        sync: false
+        value: historical_data
     healthCheckPath: /health
     autoDeploy: false
