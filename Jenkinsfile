@@ -543,13 +543,21 @@ pipeline {
                     }
                 }
                 sh '''
-                    # Build Docker image
-                    docker build \
+                    # Setup Docker buildx for multi-platform builds
+                    echo "Setting up Docker buildx..."
+                    docker buildx create --name multiplatform-builder --use 2>/dev/null || docker buildx use multiplatform-builder || true
+                    docker buildx inspect --bootstrap
+                    
+                    # Build multi-platform Docker image for linux/amd64 (Render requirement)
+                    echo "Building Docker image for linux/amd64..."
+                    docker buildx build \
+                        --platform linux/amd64 \
                         --build-arg VERSION=${BUILD_VERSION} \
                         --build-arg GIT_COMMIT=${GIT_COMMIT_SHORT} \
                         --tag ${DOCKER_HUB_REPO}:${FINAL_DOCKER_TAG} \
                         --tag ${DOCKER_HUB_REPO}:latest \
                         --file Dockerfile \
+                        --load \
                         .
                     
                     # Display image information
@@ -594,14 +602,28 @@ pipeline {
                         echo "Logging in to Docker Hub..."
                         echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
                         
-                        # Push tagged image
-                        echo "Pushing image: ${DOCKER_HUB_REPO}:${FINAL_DOCKER_TAG}"
-                        docker push ${DOCKER_HUB_REPO}:${FINAL_DOCKER_TAG}
+                        # Rebuild and push multi-platform image directly to registry
+                        echo "Building and pushing multi-platform image for linux/amd64..."
+                        docker buildx build \
+                            --platform linux/amd64 \
+                            --build-arg VERSION=${BUILD_VERSION} \
+                            --build-arg GIT_COMMIT=${GIT_COMMIT_SHORT} \
+                            --tag ${DOCKER_HUB_REPO}:${FINAL_DOCKER_TAG} \
+                            --file Dockerfile \
+                            --push \
+                            .
                         
                         # Push latest tag for main/master branch
                         if [ "${BRANCH_NAME}" = "main" ] || [ "${BRANCH_NAME}" = "master" ]; then
-                            echo "Pushing latest tag..."
-                            docker push ${DOCKER_HUB_REPO}:latest
+                            echo "Building and pushing latest tag..."
+                            docker buildx build \
+                                --platform linux/amd64 \
+                                --build-arg VERSION=${BUILD_VERSION} \
+                                --build-arg GIT_COMMIT=${GIT_COMMIT_SHORT} \
+                                --tag ${DOCKER_HUB_REPO}:latest \
+                                --file Dockerfile \
+                                --push \
+                                .
                         fi
                         
                         # Logout
