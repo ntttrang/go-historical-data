@@ -15,7 +15,7 @@ services:
       - key: GIN_MODE
         value: release
       - key: DB_HOST
-        value: mysql.railway.internal
+        value: mysql-production-eaaf.up.railway.app
       - key: DB_PORT
         value: 3306
       - key: DB_USER
@@ -43,7 +43,7 @@ services:
       - key: GIN_MODE
         value: release
       - key: DB_HOST
-        value: mysql.railway.internal
+        value: mysql-production-eaaf.up.railway.app
       - key: DB_PORT
         value: 3306
       - key: DB_USER
