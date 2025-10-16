@@ -64,7 +64,7 @@ pipeline {
         COVERAGE_THRESHOLD = '80'
         
         // Notification Configuration
-        //SLACK_CHANNEL = '#deployments'  // TODO: Update with your Slack channel
+        //SLACK_CHANNEL = '#jenkins-cicd'  // TODO: Update with your Slack channel
         //SLACK_CREDENTIALS_ID = 'SLACK_CREDENTIALS_ID'  // Jenkins credential ID
         SLACK_WEBHOOK_URL = 'SLACK_WEBHOOK_URL'
         
@@ -837,54 +837,54 @@ pipeline {
         // ====================================================================
         // CD STAGE 14: NOTIFICATION
         // ====================================================================
-        stage('📢 Notification') {
-            steps {
-                script {
-                    echo '============================================'
-                    echo 'CD STAGE 14: SEND NOTIFICATIONS'
-                    echo '============================================'
-                }
+        // stage('📢 Notification') {
+        //     steps {
+        //         script {
+        //             echo '============================================'
+        //             echo 'CD STAGE 14: SEND NOTIFICATIONS'
+        //             echo '============================================'
+        //         }
                 
-                // Send Slack notification (optional)
-                script {
-                    def deployStatus = currentBuild.result ?: 'SUCCESS'
-                    def color = deployStatus == 'SUCCESS' ? 'good' : 'danger'
-                    def message = """
-                        ----------
-                        ✅ *${deployStatus}*: Job `${env.JOB_NAME}` build `${env.BUILD_NUMBER}` 
-                        *Branch*: ${env.BRANCH_NAME} 
-                        *Commit*: ${env.GIT_COMMIT_SHORT} 
-                        *Environment*: ${params.DEPLOY_ENVIRONMENT} 
-                        *Docker Tag*: ${env.FINAL_DOCKER_TAG ?: 'N/A'} 
-                        *Build URL*: ${env.BUILD_URL}
-                    """.stripIndent()
+        //         // Send Slack notification (optional)
+        //         script {
+        //             def deployStatus = currentBuild.result ?: 'SUCCESS'
+        //             def color = deployStatus == 'SUCCESS' ? 'good' : 'danger'
+        //             def message = """
+        //                 ----------
+        //                 ✅ *${deployStatus}*: Job `${env.JOB_NAME}` build `${env.BUILD_NUMBER}` 
+        //                 *Branch*: ${env.BRANCH_NAME} 
+        //                 *Commit*: ${env.GIT_COMMIT_SHORT} 
+        //                 *Environment*: ${params.DEPLOY_ENVIRONMENT} 
+        //                 *Docker Tag*: ${env.FINAL_DOCKER_TAG ?: 'N/A'} 
+        //                 *Build URL*: ${env.BUILD_URL}
+        //             """.stripIndent()
                     
-                    echo "Deployment Status: ${message}"
+        //             echo "Deployment Status: ${message}"
                     
-                    // Send Slack notification via incoming webhook
-                    try {
-                        echo message
-                        withCredentials([string(credentialsId: env.SLACK_WEBHOOK_URL, variable: 'SLACK_WEBHOOK_URL')]) {
-                            sh """
-                                curl -X POST -H 'Content-type: application/json' --data '{"text":"${message}"}' "${SLACK_WEBHOOK_URL}"
-                            """
-                            echo "Slack notification sent successfully"
-                        }
-                    } catch (Exception e) {
-                        echo "Failed to send Slack notification: ${e.message}"
-                        echo "Continuing pipeline execution..."
-                    }
+        //             // Send Slack notification via incoming webhook
+        //             try {
+        //                 echo message
+        //                 withCredentials([string(credentialsId: env.SLACK_WEBHOOK_URL, variable: 'SLACK_WEBHOOK_URL')]) {
+        //                     sh """
+        //                         curl -X POST -H 'Content-type: application/json' --data '{"text":"${message}"}' "${SLACK_WEBHOOK_URL}"
+        //                     """
+        //                     echo "Slack notification sent successfully"
+        //                 }
+        //             } catch (Exception e) {
+        //                 echo "Failed to send Slack notification: ${e.message}"
+        //                 echo "Continuing pipeline execution..."
+        //             }
 
-                    // Uncomment to enable Slack notifications
-                    // slackSend(
-                    //     channel: env.SLACK_CHANNEL,
-                    //     color: color,
-                    //     message: message,
-                    //     tokenCredentialId: env.SLACK_CREDENTIALS_ID
-                    // )
-                }
-            }
-        }
+        //             // Uncomment to enable Slack notifications
+        //             // slackSend(
+        //             //     channel: env.SLACK_CHANNEL,
+        //             //     color: color,
+        //             //     message: message,
+        //             //     tokenCredentialId: env.SLACK_CREDENTIALS_ID
+        //             // )
+        //         }
+        //     }
+        // }
     }
     
     // ========================================================================
@@ -940,12 +940,26 @@ pipeline {
                     ✅ *BUILD SUCCESS*
                     Job: ${env.JOB_NAME} #${env.BUILD_NUMBER}
                     Branch: ${env.BRANCH_NAME}
-                    Deployed to: ${params.DEPLOY_ENVIRONMENT}
+                    Stage: ${params.DEPLOY_ENVIRONMENT}
                     Duration: ${currentBuild.durationString}
+                    Build URL: ${env.BUILD_URL}
                 """.stripIndent()
                 
                 echo message
-            }
+
+                // Send Slack notification via incoming webhook
+                try {
+                    withCredentials([string(credentialsId: env.SLACK_WEBHOOK_URL, variable: 'SLACK_WEBHOOK_URL')]) {
+                        sh """
+                            curl -X POST -H 'Content-type: application/json' --data '{"text":"${message}"}' "${SLACK_WEBHOOK_URL}"
+                        """
+                        echo "Slack notification sent successfully"
+                    }
+                } catch (Exception e) {
+                    echo "Failed to send Slack notification: ${e.message}"
+                    echo "Continuing pipeline execution..."
+                }
+        }
         }
         
         failure {
@@ -958,19 +972,70 @@ pipeline {
                     Job: ${env.JOB_NAME} #${env.BUILD_NUMBER}
                     Branch: ${env.BRANCH_NAME}
                     Stage: ${env.STAGE_NAME}
+                    Duration: ${currentBuild.durationString}
                     Build URL: ${env.BUILD_URL}
                 """.stripIndent()
                 
                 echo message
+                // Send Slack notification via incoming webhook
+                try {
+                    withCredentials([string(credentialsId: env.SLACK_WEBHOOK_URL, variable: 'SLACK_WEBHOOK_URL')]) {
+                        sh """
+                            curl -X POST -H 'Content-type: application/json' --data '{"text":"${message}"}' "${SLACK_WEBHOOK_URL}"
+                        """
+                        echo "Slack notification sent successfully"
+                    }
+                } catch (Exception e) {
+                    echo "Failed to send Slack notification: ${e.message}"
+                    echo "Continuing pipeline execution..."
+                }
             }
         }
         
         unstable {
             echo '⚠️ Pipeline is unstable!'
+            script {
+                def message = """
+                    ⚠️ *BUILD UNSTABLE*
+                    Build URL: ${env.BUILD_URL}
+                """.stripIndent()
+                
+                // Send Slack notification via incoming webhook
+                try {
+                    withCredentials([string(credentialsId: env.SLACK_WEBHOOK_URL, variable: 'SLACK_WEBHOOK_URL')]) {
+                        sh """
+                            curl -X POST -H 'Content-type: application/json' --data '{"text":"${message}"}' "${SLACK_WEBHOOK_URL}"
+                        """
+                        echo "Slack notification sent successfully"
+                    }
+                } catch (Exception e) {
+                    echo "Failed to send Slack notification: ${e.message}"
+                    echo "Continuing pipeline execution..."
+                }
+            }
         }
         
         aborted {
             echo '🛑 Pipeline was aborted!'
+            script {
+                def message = """
+                    🛑 *BUILD ABORTED*
+                    Build URL: ${env.BUILD_URL}
+                """.stripIndent()
+
+                // Send Slack notification via incoming webhook
+                try {
+                    withCredentials([string(credentialsId: env.SLACK_WEBHOOK_URL, variable: 'SLACK_WEBHOOK_URL')]) {
+                        sh """
+                            curl -X POST -H 'Content-type: application/json' --data '{"text":"${message}"}' "${SLACK_WEBHOOK_URL}"
+                        """
+                        echo "Slack notification sent successfully"
+                    }
+                } catch (Exception e) {
+                    echo "Failed to send Slack notification: ${e.message}"
+                    echo "Continuing pipeline execution..."
+                }
+            }
         }
     }
 }
