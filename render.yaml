@@ -4,7 +4,7 @@ services:
     name: go-historical-data-staging
     runtime: image
     image:
-      url: docker pull minhtrang2106/go-historical-data:dev-52-deb80d0
+      url: docker pull minhtrang2106/go-historical-data:latest
     region: oregon
     plan: free
     envVars:
@@ -32,7 +32,7 @@ services:
     name: go-historical-data-production
     runtime: image
     image:
-      url: docker pull minhtrang2106/go-historical-data:dev-52-deb80d0
+      url: docker pull minhtrang2106/go-historical-data:latest
     region: oregon
     plan: free
     envVars:
