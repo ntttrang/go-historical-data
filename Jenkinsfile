@@ -34,7 +34,7 @@ pipeline {
         GO_VERSION = '1.24'
         
         // Docker Configuration
-        DOCKER_HUB_REPO = 'minhtrang2106/go-historical-data'  // TODO: Update with your Docker Hub username
+        DOCKER_HUB_REPO = 'docker.io/minhtrang2106/go-historical-data'  // TODO: Update with your Docker Hub username
         DOCKER_REGISTRY = 'https://index.docker.io/v1/'
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'  // Jenkins credential ID
         
@@ -43,8 +43,10 @@ pipeline {
         
         // Render.com Deployment Configuration
         RENDER_API_KEY_CREDENTIALS_ID = 'render-api-key'  // Jenkins credential ID for Render API key
-        RENDER_STAGING_SERVICE_ID = 'srv-d3mhlt1r0fns73eo0hi0'  // TODO: Add your Render staging service ID
-        RENDER_PRODUCTION_SERVICE_ID = 'srv-d3mhlt1r0fns73eo0hhg'  // TODO: Add your Render production service ID
+        RENDER_STAGING_SERVICE_ID = 'srv-d3mhlt1r0fns73eo0hi0'  // Render staging service ID
+        RENDER_PRODUCTION_SERVICE_ID = 'srv-d3mhlt1r0fns73eo0hhg'  // Render production service ID
+        STAGING_SERVER = 'go-historical-data-staging.onrender.com'  // Staging server URL
+        PRODUCTION_SERVER = 'go-historical-data-production.onrender.com'  // Production server URL
         
         // Build Configuration
         CGO_ENABLED = '0'
@@ -62,8 +64,9 @@ pipeline {
         COVERAGE_THRESHOLD = '80'
         
         // Notification Configuration
-        SLACK_CHANNEL = '#deployments'  // TODO: Update with your Slack channel
-        SLACK_CREDENTIALS_ID = 'slack-webhook'  // Jenkins credential ID
+        //SLACK_CHANNEL = '#deployments'  // TODO: Update with your Slack channel
+        //SLACK_CREDENTIALS_ID = 'SLACK_CREDENTIALS_ID'  // Jenkins credential ID
+        SLACK_WEBHOOK_URL = 'SLACK_WEBHOOK_URL'
         
         // Dynamic Variables
         BUILD_VERSION = "${env.BUILD_NUMBER}"
@@ -847,16 +850,31 @@ pipeline {
                     def deployStatus = currentBuild.result ?: 'SUCCESS'
                     def color = deployStatus == 'SUCCESS' ? 'good' : 'danger'
                     def message = """
-                        *${deployStatus}*: Job `${env.JOB_NAME}` build `${env.BUILD_NUMBER}`
-                        *Branch*: ${env.BRANCH_NAME}
-                        *Commit*: ${env.GIT_COMMIT_SHORT}
-                        *Environment*: ${params.DEPLOY_ENVIRONMENT}
-                        *Docker Tag*: ${env.FINAL_DOCKER_TAG ?: 'N/A'}
+                        ----------
+                        ✅ *${deployStatus}*: Job `${env.JOB_NAME}` build `${env.BUILD_NUMBER}` 
+                        *Branch*: ${env.BRANCH_NAME} 
+                        *Commit*: ${env.GIT_COMMIT_SHORT} 
+                        *Environment*: ${params.DEPLOY_ENVIRONMENT} 
+                        *Docker Tag*: ${env.FINAL_DOCKER_TAG ?: 'N/A'} 
                         *Build URL*: ${env.BUILD_URL}
                     """.stripIndent()
                     
                     echo "Deployment Status: ${message}"
                     
+                    // Send Slack notification via incoming webhook
+                    try {
+                        echo message
+                        withCredentials([string(credentialsId: env.SLACK_WEBHOOK_URL, variable: 'SLACK_WEBHOOK_URL')]) {
+                            sh """
+                                curl -X POST -H 'Content-type: application/json' --data '{"text":"${message}"}' "${SLACK_WEBHOOK_URL}"
+                            """
+                            echo "Slack notification sent successfully"
+                        }
+                    } catch (Exception e) {
+                        echo "Failed to send Slack notification: ${e.message}"
+                        echo "Continuing pipeline execution..."
+                    }
+
                     // Uncomment to enable Slack notifications
                     // slackSend(
                     //     channel: env.SLACK_CHANNEL,
