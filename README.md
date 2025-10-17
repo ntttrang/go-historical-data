@@ -149,6 +149,6 @@ Server will be available:
 │  ELK Stack (Log Aggregation)                                │
 └─────────────────────────────────────────────────────────────┘
 ```
-Test Auto trigger CICD ver 1
+Test Auto trigger CICD ver 2
 
 **Built with ❤️ using Go, Fiber, MySQL, Docker, Prometheus, Grafana, Jaeger, and ELK Stack**
