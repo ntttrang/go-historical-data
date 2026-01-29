@@ -17,7 +17,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /app/bin/api cmd/api/main.go
 
 # Production stage
-FROM alpine:latest
+FROM alpine:3.23.3
 
 # Install ca-certificates for HTTPS
 RUN apk --no-cache add ca-certificates tzdata
